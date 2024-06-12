@@ -101,7 +101,7 @@ function getProfitRentOut(initialCost, appreciationRate, yearsToSell, downpaymen
     const stockProfit = getSandPprofit(downpayment, monthlyPayment, rentalCost, rentalIncome, yearsToSell, SandPAppreciation)
     // console.log("renting profit:", stockProfit - rentalCost * 12 * yearsToSell  )
     // console.log("housing saves : ", rentalCost * 12 * yearsToSell + totalProfit - stockProfit); 
-    return totalProfit;
+    return totalProfit.toFixed(0);
 
 }
 
@@ -125,13 +125,29 @@ function getSandPprofit(downpayment, monthlyPayment, rentalCost, rentalIncome, y
 // const twentyyearProfitRO = getProfitRentOut(initialCost, appreciationRate, 20, downpayment, monthlyPayment, mortageRate, loanTerm, 2036)
 // const thirtyyearProfitRO = getProfitRentOut(initialCost, appreciationRate, 30, downpayment, monthlyPayment, mortageRate, loanTerm, 2036)
 
+const cellWidth = 10
+const loanTerms = [1, 5, 10, 15, 25, 30]
+
 console.log("Profit by ammortization time")
-console.log("1 year | 10 year  | 25 year | 30 year")
-console.log("----------------------------------------")
+let header = " ".repeat(10);
+for (const loan of loanTerms){
+  let text = loan + " year"
+  let textWidth = text.length
+  text = text + " ".repeat(10 - textWidth)
+  header += text
+}
+console.log(header)
+// console.log("1 year |  5 year |  10 year  |  15 year  |   25 year | 30 year")
+console.log("-".repeat(10 * loanTerms.length))
 for (let i = 1; i <= 31; i+=5){
-  const profit1 =  getProfitRentOut(initialCost, appreciationRate, i, downpayment, calculateMonthlyMortgagePayment( initialCost - downpayment, mortageRate, 1), mortageRate, 1, 2036)
-  const profit10 = getProfitRentOut(initialCost, appreciationRate, i, downpayment, calculateMonthlyMortgagePayment( initialCost - downpayment, mortageRate, 10), mortageRate, 10, 2036)
-  const profit25 = getProfitRentOut(initialCost, appreciationRate, i, downpayment, calculateMonthlyMortgagePayment( initialCost - downpayment, mortageRate, 25), mortageRate, 25, 2036)
-  const profit30 = getProfitRentOut(initialCost, appreciationRate, i, downpayment, calculateMonthlyMortgagePayment( initialCost - downpayment, mortageRate, 30), mortageRate, 30, 2036)
-  console.log(i + "years|" + profit1 + " | " + profit10 + " | " + profit25 + " | " + profit30)
+  const loanTerms = [1, 5, 10, 15, 25, 30]
+  let line = i + " years"
+  const lineLength = line.length
+  line += " ".repeat((10 - lineLength)) 
+  for (const loanTerm of loanTerms){
+    const profit = getProfitRentOut(initialCost, appreciationRate, i, downpayment, calculateMonthlyMortgagePayment( initialCost - downpayment, mortageRate, loanTerm), mortageRate, loanTerm, 2036)
+    const profitLength = profit.length
+    line += profit + " ".repeat((10 - profitLength)) 
+  }
+  console.log(line)
 }
