@@ -9,17 +9,27 @@
 // const loanTerm = 25;
 // const rentalCost = 1500
 
-const initialCost = 519000
-const appreciationRate = .03
-const mortageRate = .05
+const initialCost = parseInt(process.env.initialCost);
+const appreciationRate = parseFloat(process.env.appreciationRate);
+const mortageRate =  parseFloat(process.env.mortageRate);
 // const yearsToSell = 5
-const rentalIncome = 2380
-const downpayment = 150000
+const rentalIncome = parseInt(process.env.rentalIncome);
+const downpayment = parseInt(process.env.downpayment);
 // const loanTerm = 1;
-const rentalCost = 1500
-const SandPAppreciation = 0.07
-const yearlyPropertyTax = 2918
-const monthlyMaintenance = 0
+const rentalCost = parseInt(process.env.rentalCost);
+const SandPAppreciation = parseFloat(process.env.SandPAppreciation);
+const yearlyPropertyTax = parseInt(process.env.yearlyPropertyTax);
+const monthlyMaintenance = parseInt(process.env.monthlyMaintenance);
+console.log("initial:", initialCost);
+console.log("appreciationRate:", appreciationRate);
+console.log("mortageRate:", mortageRate);
+console.log("rentalIncome:", rentalIncome);
+console.log("downpayment:", downpayment);
+console.log("SandPAppreciation:", SandPAppreciation);
+console.log("yearlyPropertyTax:", yearlyPropertyTax);
+console.log("monthlyMaintenance:", monthlyMaintenance);
+
+
 
 // const monthlyPayment = yearlyPropertyTax/12 + monthlyMaintenance + 
 // calculateMonthlyMortgagePayment( initialCost - downpayment, mortageRate, loanTerm) //lculateMonthlyMortgagePayment(ini) //
@@ -34,7 +44,7 @@ function calculateMonthlyMortgagePayment(principal: number, annualInterestRate: 
   const denominator = Math.pow(1 + monthlyInterestRate, totalPayments) - 1;
   const monthlyPayment = principal * (numerator / denominator);
 
-  return monthlyPayment;
+  return parseInt((monthlyPayment + yearlyPropertyTax/ 12 + monthlyMaintenance).toFixed(0));
 }
 
 function getTotalCostOfPaymentsMade(monthlyPayment: number, yearsToSell:number,  
@@ -83,7 +93,7 @@ function getProfitLiveIn(initialCost, appreciationRate, yearsToSell, downpayment
             // console.log("housing saves : ", rentalCost * 12 * yearsToSell + profit - stockProfit); 
 
         }
-    return profit;
+    return profit.toFixed(0);;
 }
 
 function getProfitRentOut(initialCost, appreciationRate, yearsToSell, downpayment, monthlyPayment, mortageRate, loanTerm, rentalIncome) {
@@ -93,7 +103,10 @@ function getProfitRentOut(initialCost, appreciationRate, yearsToSell, downpaymen
     calculateRemainingPrincipal(initialCost - downpayment, mortageRate, loanTerm, yearsToSell)
     const totalRentalIncome = rentalIncome * 12 * yearsToSell
     const rentalIncomeTax = 12 * rentalIncome * .32 * yearsToSell
-    const capitalGainsTax = (initialCost * (1 + appreciationRate) ** yearsToSell - initialCost) * .67 * .32
+    const capitalGains = initialCost * (1 + appreciationRate) ** yearsToSell - initialCost
+    const profitUnder500k = Math.min(500000, capitalGains)
+    const profitOver500k = Math.max(0, capitalGains - 500000)
+    const capitalGainsTax =  profitUnder500k * .5 * .32 + profitOver500k * 0.67 * 0.5
     const rentPaid = rentalCost * 12 * yearsToSell;
 
     const totalProfit = initialProfit + totalRentalIncome - rentalIncomeTax - capitalGainsTax - rentPaid ;
@@ -128,6 +141,7 @@ function getSandPprofit(downpayment, monthlyPayment, rentalCost, rentalIncome, y
 const cellWidth = 10
 const loanTerms = [1, 5, 10, 15, 25, 30]
 
+console.log("RENT OUT \n\n")
 console.log("Profit by ammortization time")
 let header = " ".repeat(10);
 for (const loan of loanTerms){
@@ -137,17 +151,60 @@ for (const loan of loanTerms){
   header += text
 }
 console.log(header)
-// console.log("1 year |  5 year |  10 year  |  15 year  |   25 year | 30 year")
-console.log("-".repeat(10 * loanTerms.length))
+console.log("-".repeat(10 * (loanTerms.length + 1)))
+let cashFlow = "Cash Flow "
+for (const loanTerm of loanTerms){
+  const monthlyPayment = calculateMonthlyMortgagePayment( initialCost - downpayment, mortageRate, loanTerm)
+  let text = (rentalIncome - monthlyPayment).toFixed(0).toString()
+  let textWidth = text.length;
+  text = text + " ".repeat(10 - textWidth)
+  cashFlow += text
+}
+console.log(cashFlow)
 for (let i = 1; i <= 31; i+=5){
   const loanTerms = [1, 5, 10, 15, 25, 30]
   let line = i + " years"
   const lineLength = line.length
   line += " ".repeat((10 - lineLength)) 
   for (const loanTerm of loanTerms){
-    const profit = getProfitRentOut(initialCost, appreciationRate, i, downpayment, calculateMonthlyMortgagePayment( initialCost - downpayment, mortageRate, loanTerm), mortageRate, loanTerm, 2036)
+    const profit = getProfitRentOut(initialCost, appreciationRate, i, downpayment, calculateMonthlyMortgagePayment( initialCost - downpayment, mortageRate, loanTerm), mortageRate, loanTerm, rentalIncome)
     const profitLength = profit.length
     line += profit + " ".repeat((10 - profitLength)) 
   }
   console.log(line)
 }
+
+console.log("\n\n LIVE IN \n\n")
+
+console.log("Profit by ammortization time")
+header = " ".repeat(10);
+for (const loan of loanTerms){
+  let text = loan + " year"
+  let textWidth = text.length
+  text = text + " ".repeat(10 - textWidth)
+  header += text
+}
+console.log(header)
+console.log("-".repeat(10 * (loanTerms.length + 1)))
+cashFlow = "Cash Flow "
+for (const loanTerm of loanTerms){
+  const monthlyPayment = calculateMonthlyMortgagePayment( initialCost - downpayment, mortageRate, loanTerm)
+  let text = (0 - monthlyPayment).toFixed(0).toString()
+  let textWidth = text.length;
+  text = text + " ".repeat(10 - textWidth)
+  cashFlow += text
+}
+console.log(cashFlow)
+for (let i = 1; i <= 31; i+=5){
+  const loanTerms = [1, 5, 10, 15, 25, 30]
+  let line = i + " years"
+  const lineLength = line.length
+  line += " ".repeat((10 - lineLength)) 
+  for (const loanTerm of loanTerms){
+    const profit = getProfitLiveIn(initialCost, appreciationRate, i, downpayment, calculateMonthlyMortgagePayment( initialCost - downpayment, mortageRate, loanTerm), mortageRate, loanTerm, false)
+    const profitLength = profit.length
+    line += profit + " ".repeat((10 - profitLength)) 
+  }
+  console.log(line)
+}
+  
